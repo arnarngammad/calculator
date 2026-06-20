@@ -128,38 +128,85 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         hours = total_time // 60
         minutes = total_time % 60
 
-        # ==========================================
-        # EMBED
-        # ==========================================
-        embed = discord.Embed(
-            title="XP & Pack Calculator",
-            color=discord.Color.blurple()
-        )
+       # ==========================================
+       # EMBED
+       # ==========================================
+       embed = discord.Embed(
+           title="XP & Pack Calculator",
+           color=discord.Color.blurple()
+       )
 
-        embed.add_field(name="📊 Levels", value=f"{start} ➜ {target}", inline=False)
-        embed.add_field(name="📈 Total XP Needed", value=f"{total_xp:,}", inline=False)
+       embed.add_field(name="📊 Levels", value=f"{start} ➜ {target}", inline=False)
+       embed.add_field(name="📈 Total XP Needed", value=f"{total_xp:,}", inline=False)
 
-        # your custom emoji
-        emoji = "<:dl:1495834832524021962>"
+       # your custom emoji
+       emoji = "<:dl:1495834832524021962>"
 
-        packs_text = ""
-        
-        if prime:
-            packs_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
-        if vast:
-            packs_text += f"👑 {vast}x Vast Pack (45{emoji})\n"
-        if mediant:
-            packs_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
-        if small:
-            packs_text += f"🔥 {small}x Small Pack (20{emoji})\n"
-        if mini:
-            packs_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
 
-        embed.add_field(name="📦 Recommended Packs", value=packs_text or "None", inline=False)
-        embed.add_field(name="💰 Total Cost", value=f"{total_dl} {emoji} Diamond Locks", inline=False)
-        embed.add_field(name="⏱️ Estimated Time", value=f"{hours}h {minutes}m", inline=False)
+       # ==========================================
+       # PRIME PRIORITY RECOMMENDATION
+       # ==========================================
 
-        await interaction.response.send_message(embed=embed)
+       prime_text = ""
+
+       if prime:
+           prime_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
+       if vast:
+           prime_text += f"💎 {vast}x Vast Pack (45{emoji})\n"
+       if mediant:
+           prime_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
+       if small:
+           prime_text += f"🔥 {small}x Small Pack (20{emoji})\n"
+       if mini:
+           prime_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
+
+
+       embed.add_field(
+           name="👑 Recommendation #1: Prime Priority",
+           value=prime_text or "None",
+           inline=False
+       )
+
+
+
+       # ==========================================
+       # VAST PRIORITY RECOMMENDATION
+       # ==========================================
+
+       vast_text = ""
+
+       if vast:
+           vast_text += f"💎 {vast}x Vast Pack (45{emoji})\n"
+       if prime:
+           vast_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
+       if mediant:
+         vast_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
+       if small:
+           vast_text += f"🔥 {small}x Small Pack (20{emoji})\n"
+       if mini:
+           vast_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
+
+
+       embed.add_field(
+           name="💎 Recommendation #2: Vast Priority",
+           value=vast_text or "None",
+           inline=False
+       )
+
+
+       embed.add_field(
+           name="💰 Total Cost",
+           value=f"{total_dl} {emoji} Diamond Locks",
+           inline=False
+       )
+
+       embed.add_field(
+           name="⏱️ Estimated Time",
+           value=f"{hours}h {minutes}m",
+           inline=False
+       )
+
+       await interaction.response.send_message(embed=embed)
 
 # ==========================================
 # 4. BOT
