@@ -7,15 +7,18 @@ from threading import Thread
 
 load_dotenv()
 
+
 # ==========================================
 # 🔒 ALLOWED CATEGORY ID
 # ==========================================
+
 ALLOWED_CATEGORY_ID = 1487387217017045134
 
 
 # ==========================================
-# 1. KEEP-ALIVE WEB SERVER
+# KEEP ALIVE SERVER
 # ==========================================
+
 app = Flask("")
 
 
@@ -24,47 +27,129 @@ def home():
     return "Bot is running!"
 
 
+
 def run():
+
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
+
 
 
 def keep_alive():
+
     t = Thread(target=run)
     t.start()
 
 
+
 # ==========================================
-# 2. DISCORD BOT SETUP
+# PACK RECOMMENDATIONS
 # ==========================================
+
+
+# ⚡ FASTEST LEVELING
+# Prime > Vast > Mediant > Small > Mini
+
+def fastest_leveling(xp):
+
+    packs = {}
+
+    packs["Prime"] = xp // 2_000_000
+    xp %= 2_000_000
+
+    packs["Vast"] = xp // 1_100_000
+    xp %= 1_100_000
+
+    packs["Mediant"] = xp // 500_000
+    xp %= 500_000
+
+    packs["Small"] = xp // 250_000
+    xp %= 250_000
+
+    packs["Mini"] = -(-xp // 125_000)
+
+    return packs
+
+
+
+# 💰 CHEAPEST COST
+# Vast > Mediant > Small > Mini
+# NO PRIME
+
+def cheapest_cost(xp):
+
+    packs = {}
+
+    packs["Vast"] = xp // 1_100_000
+    xp %= 1_100_000
+
+    packs["Mediant"] = xp // 500_000
+    xp %= 500_000
+
+    packs["Small"] = xp // 250_000
+    xp %= 250_000
+
+    packs["Mini"] = -(-xp // 125_000)
+
+    return packs
+
+
+
+# ==========================================
+# DISCORD BOT
+# ==========================================
+
 class CalculatorBot(discord.Client):
 
     def __init__(self):
-        intents = discord.Intents.all()
-        super().__init__(intents=intents)
+
+        super().__init__(
+            intents=discord.Intents.all()
+        )
+
         self.tree = app_commands.CommandTree(self)
 
+
+
     async def setup_hook(self):
+
         await self.tree.sync()
 
+
+
     async def on_ready(self):
-        print(f"✅ Logged in as {self.user}")
+
+        print(
+            f"✅ Logged in as {self.user}"
+        )
+
 
 
 # ==========================================
-# 3. CALCULATOR MODAL
+# CALCULATOR MODAL
 # ==========================================
-class CalculatorModal(discord.ui.Modal, title="XP & Pack Calculator"):
+
+class CalculatorModal(
+    discord.ui.Modal,
+    title="XP & Pack Calculator"
+):
+
 
     start_lvl = discord.ui.TextInput(
         label="Start Level",
         placeholder="Example: 1"
     )
 
+
     target_lvl = discord.ui.TextInput(
         label="Target Level",
         placeholder="Example: 40"
     )
+
 
     current_xp = discord.ui.TextInput(
         label="Current XP",
@@ -73,212 +158,317 @@ class CalculatorModal(discord.ui.Modal, title="XP & Pack Calculator"):
     )
 
 
-    async def on_submit(self, interaction: discord.Interaction):
+
+    async def on_submit(
+        self,
+        interaction: discord.Interaction
+    ):
+
 
         try:
-            start = int(self.start_lvl.value)
-            target = int(self.target_lvl.value)
-            xp_owned = int(self.current_xp.value.strip() or 0)
+
+            start = int(
+                self.start_lvl.value
+            )
+
+            target = int(
+                self.target_lvl.value
+            )
+
+            xp_owned = int(
+                self.current_xp.value.strip() or 0
+            )
+
 
         except ValueError:
+
             return await interaction.response.send_message(
                 "❌ Please use numbers only.",
                 ephemeral=True
             )
 
 
-        # ==========================================
+
+        # ==================================
         # XP CALCULATION
-        # ==========================================
+        # ==================================
 
         total_xp = 0
 
+
         for lvl in range(start, target):
-            total_xp += 50 * (lvl * lvl + 2)
 
-        total_xp = max(0, total_xp - xp_owned)
-
-
-        # ==========================================
-        # PACK CALCULATION
-        # ==========================================
-
-        MINI_XP = 125_000
-        SMALL_XP = 250_000
-        MEDIANT_XP = 500_000
-        VAST_XP = 1_100_000
-        PRIME_XP = 2_000_000
+            total_xp += (
+                50 * (lvl * lvl + 2)
+            )
 
 
-        remaining = total_xp
-
-        prime = remaining // PRIME_XP
-        remaining %= PRIME_XP
-
-        vast = remaining // VAST_XP
-        remaining %= VAST_XP
-
-        mediant = remaining // MEDIANT_XP
-        remaining %= MEDIANT_XP
-
-        small = remaining // SMALL_XP
-        remaining %= SMALL_XP
-
-        mini = remaining // MINI_XP
-
-        if remaining % MINI_XP > 0:
-            mini += 1
+        total_xp = max(
+            0,
+            total_xp - xp_owned
+        )
 
 
-        # ==========================================
+
+        # ==================================
+        # PACK RESULTS
+        # ==================================
+
+        fast = fastest_leveling(
+            total_xp
+        )
+
+        cheap = cheapest_cost(
+            total_xp
+        )
+
+
+
+        # ==================================
         # COST
-        # ==========================================
+        # ==================================
 
-        total_dl = (
-            (mini * 15) +
-            (small * 20) +
-            (mediant * 25) +
-            (vast * 45) +
-            (prime * 100)
-        )
+        prices = {
+
+            "Mini": 15,
+            "Small": 20,
+            "Mediant": 25,
+            "Vast": 45,
+            "Prime": 100
+
+        }
 
 
-        # ==========================================
+        fast_cost = 0
+
+        for name, amount in fast.items():
+
+            fast_cost += (
+                prices[name] * amount
+            )
+
+
+
+        cheap_cost = 0
+
+        for name, amount in cheap.items():
+
+            cheap_cost += (
+                prices[name] * amount
+            )
+
+
+
+        # ==================================
         # TIME
-        # ==========================================
+        # ==================================
 
-        total_time = (
-            (mini * 5) +
-            (small * 10) +
-            (mediant * 25) +
-            (vast * 30) +
-            (prime * 30)
-        )
+        times = {
+
+            "Mini": 5,
+            "Small": 10,
+            "Mediant": 25,
+            "Vast": 30,
+            "Prime": 30
+
+        }
+
+
+        total_time = 0
+
+
+        for name, amount in fast.items():
+
+            total_time += (
+                times[name] * amount
+            )
 
 
         hours = total_time // 60
+
         minutes = total_time % 60
 
 
-        # ==========================================
+
+        # ==================================
         # EMBED
-        # ==========================================
+        # ==================================
 
         emoji = "<:dl:1495834832524021962>"
 
 
         embed = discord.Embed(
+
             title="XP & Pack Calculator",
+
             color=discord.Color.blurple()
+
         )
 
 
         embed.add_field(
+
             name="📊 Levels",
+
             value=f"{start} ➜ {target}",
+
             inline=False
+
         )
 
 
         embed.add_field(
+
             name="📈 Total XP Needed",
+
             value=f"{total_xp:,}",
+
             inline=False
+
         )
 
 
-        # Prime Priority
 
-        prime_text = ""
+        icons = {
 
-        if prime:
-            prime_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
+            "Prime":"👑",
+            "Vast":"💎",
+            "Mediant":"🌿",
+            "Small":"🔥",
+            "Mini":"🚀"
 
-        if vast:
-            prime_text += f"💎 {vast}x Vast Pack (45{emoji})\n"
+        }
 
-        if mediant:
-            prime_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
 
-        if small:
-            prime_text += f"🔥 {small}x Small Pack (20{emoji})\n"
 
-        if mini:
-            prime_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
+        fast_text = ""
+
+
+        for name, amount in fast.items():
+
+            if amount:
+
+                fast_text += (
+                    f"{icons[name]} "
+                    f"{amount}x {name} Pack\n"
+                )
+
 
 
         embed.add_field(
-            name="👑 Reco",
-            value=prime_text or "None",
+
+            name="⚡ Fastest Leveling",
+
+            value=fast_text or "None",
+
             inline=False
+
         )
 
 
-        # Vast Priority
 
-        vast_text = ""
+        cheap_text = ""
 
-        if vast:
-            vast_text += f"💎 {vast}x Vast Pack (45{emoji})\n"
 
-        if mediant:
-            vast_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
+        for name, amount in cheap.items():
 
-        if small:
-            vast_text += f"🔥 {small}x Small Pack (20{emoji})\n"
+            if amount:
 
-        if mini:
-            vast_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
+                cheap_text += (
+                    f"{icons[name]} "
+                    f"{amount}x {name} Pack\n"
+                )
+
 
 
         embed.add_field(
-            name="💎 Reco #2",
-            value=vast_text or "None",
+
+            name="💰 Cheapest Cost",
+
+            value=cheap_text or "None",
+
             inline=False
+
+        )
+
+
+
+        embed.add_field(
+
+            name="💸 Fastest Cost",
+
+            value=f"{fast_cost}{emoji} DL",
+
+            inline=False
+
         )
 
 
         embed.add_field(
-            name="💰 Total Cost",
-            value=f"{total_dl} {emoji} Diamond Locks",
+
+            name="💰 Cheapest Cost",
+
+            value=f"{cheap_cost}{emoji} DL",
+
             inline=False
+
         )
 
 
         embed.add_field(
+
             name="⏱️ Estimated Time",
+
             value=f"{hours}h {minutes}m",
+
             inline=False
+
         )
 
 
-        await interaction.response.send_message(embed=embed)
+
+        await interaction.response.send_message(
+            embed=embed
+        )
 
 
 
 # ==========================================
-# 4. BOT COMMAND
+# COMMAND
 # ==========================================
 
 bot = CalculatorBot()
+
 
 
 @bot.tree.command(
     name="calc",
     description="Open XP Calculator"
 )
-async def calc(interaction: discord.Interaction):
+
+async def calc(
+    interaction: discord.Interaction
+):
+
 
     if (
+
         interaction.channel is None
+
         or interaction.channel.category is None
+
         or interaction.channel.category.id != ALLOWED_CATEGORY_ID
+
     ):
 
         return await interaction.response.send_message(
+
             "❌ This command can only be used in the allowed category.",
+
             ephemeral=True
+
         )
+
 
 
     await interaction.response.send_modal(
@@ -288,16 +478,15 @@ async def calc(interaction: discord.Interaction):
 
 
 # ==========================================
-# 5. RUN BOT
+# RUN
 # ==========================================
 
 if __name__ == "__main__":
 
     keep_alive()
 
-    token = os.getenv("DISCORD_TOKEN")
+    token = os.getenv(
+        "DISCORD_TOKEN"
+    )
 
-    if token is None:
-        print("❌ DISCORD_TOKEN missing!")
-    else:
-        bot.run(token)
+    bot.run(token)
