@@ -93,8 +93,8 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
 
         remaining = total_xp
 
-        prime = remaining // VAST_XP
-        remaining %= VAST_XP
+        prime = remaining // PRIME_XP
+        remaining %= PRIME_XP
 
         vast = remaining // VAST_XP
         remaining %= VAST_XP
@@ -143,8 +143,9 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         emoji = "<:dl:1495834832524021962>"
 
         packs_text = ""
-        if vast:
-            packs_text += f"👑 {vast}x Vast Pack (100{emoji})\n"
+        
+        if prime:
+            packs_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
         if vast:
             packs_text += f"👑 {vast}x Vast Pack (45{emoji})\n"
         if mediant:
