@@ -208,7 +208,7 @@ class CalculatorModal(discord.ui.Modal, title="XP & Pack Calculator"):
 
 
         embed.add_field(
-            name="👑 Recommendation #1: Prime Priority",
+            name="👑 Reco",
             value=prime_text or "None",
             inline=False
         )
@@ -221,9 +221,6 @@ class CalculatorModal(discord.ui.Modal, title="XP & Pack Calculator"):
         if vast:
             vast_text += f"💎 {vast}x Vast Pack (45{emoji})\n"
 
-        if prime:
-            vast_text += f"👑 {prime}x Prime Pack (100{emoji})\n"
-
         if mediant:
             vast_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
 
@@ -235,7 +232,7 @@ class CalculatorModal(discord.ui.Modal, title="XP & Pack Calculator"):
 
 
         embed.add_field(
-            name="💎 Recommendation #2: Vast Priority",
+            name="💎 Reco #2",
             value=vast_text or "None",
             inline=False
         )
