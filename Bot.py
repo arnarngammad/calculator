@@ -108,7 +108,7 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         # ==========================================
         # COST
         # ==========================================
-        total_dl = (mini * 15) + (small * 25) + (mediant * 35) + (vast * 60)
+        total_dl = (mini * 15) + (small * 20) + (mediant * 25) + (vast * 45)
 
         # ==========================================
         # TIME
@@ -139,11 +139,11 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
 
         packs_text = ""
         if vast:
-            packs_text += f"👑 {vast}x Vast Pack (60{emoji})\n"
+            packs_text += f"👑 {vast}x Vast Pack (45{emoji})\n"
         if mediant:
-            packs_text += f"🌿 {mediant}x Mediant Pack (35{emoji})\n"
+            packs_text += f"🌿 {mediant}x Mediant Pack (25{emoji})\n"
         if small:
-            packs_text += f"🔥 {small}x Small Pack (25{emoji})\n"
+            packs_text += f"🔥 {small}x Small Pack (20{emoji})\n"
         if mini:
             packs_text += f"🚀 {mini}x Mini Pack (15{emoji})\n"
 
