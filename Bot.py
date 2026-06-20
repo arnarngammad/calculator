@@ -136,10 +136,18 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
            color=discord.Color.blurple()
        )
 
-       embed.add_field(name="📊 Levels", value=f"{start} ➜ {target}", inline=False)
-       embed.add_field(name="📈 Total XP Needed", value=f"{total_xp:,}", inline=False)
+       embed.add_field(
+           name="📊 Levels",
+           value=f"{start} ➜ {target}",
+           inline=False
+       )
 
-       # your custom emoji
+       embed.add_field(
+           name="📈 Total XP Needed",
+           value=f"{total_xp:,}",
+           inline=False
+       )
+
        emoji = "<:dl:1495834832524021962>"
 
 
@@ -165,7 +173,7 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
            name="👑 Recommendation #1: Prime Priority",
            value=prime_text or "None",
            inline=False
-       )
+        )
 
 
 
@@ -191,20 +199,20 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
            name="💎 Recommendation #2: Vast Priority",
            value=vast_text or "None",
            inline=False
-       )
+        )
 
 
        embed.add_field(
            name="💰 Total Cost",
            value=f"{total_dl} {emoji} Diamond Locks",
            inline=False
-       )
+        )
 
        embed.add_field(
            name="⏱️ Estimated Time",
            value=f"{hours}h {minutes}m",
            inline=False
-       )
+        )
 
        await interaction.response.send_message(embed=embed)
 
