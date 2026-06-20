@@ -89,8 +89,12 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         SMALL_XP = 250_000
         MEDIANT_XP = 500_000
         VAST_XP = 1_100_000
+        PRIME_XP = 2_000_000
 
         remaining = total_xp
+
+        prime = remaining // VAST_XP
+        remaining %= VAST_XP
 
         vast = remaining // VAST_XP
         remaining %= VAST_XP
@@ -108,7 +112,7 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         # ==========================================
         # COST
         # ==========================================
-        total_dl = (mini * 15) + (small * 20) + (mediant * 25) + (vast * 45)
+        total_dl = (mini * 15) + (small * 20) + (mediant * 25) + (vast * 45) + (prime * 100)
 
         # ==========================================
         # TIME
@@ -117,7 +121,8 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
             (mini * 5) +
             (small * 10) +
             (mediant * 25) +
-            (vast * 30)
+            (vast * 30) +
+            (prime * 30)
         )
 
         hours = total_time // 60
@@ -138,6 +143,8 @@ class CalculatorModal(discord.ui.Modal, title='XP & Pack Calculator'):
         emoji = "<:dl:1495834832524021962>"
 
         packs_text = ""
+        if vast:
+            packs_text += f"👑 {vast}x Vast Pack (100{emoji})\n"
         if vast:
             packs_text += f"👑 {vast}x Vast Pack (45{emoji})\n"
         if mediant:
