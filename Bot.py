@@ -15,7 +15,6 @@ load_dotenv()
 ALLOWED_CATEGORY_ID = 1487387217017045134
 
 
-
 # ==========================================
 # KEEP ALIVE SERVER (RENDER)
 # ==========================================
@@ -28,9 +27,7 @@ def home():
     return "Bot is running!"
 
 
-
 def run():
-
     port = int(os.environ.get("PORT", 10000))
 
     app.run(
@@ -39,23 +36,18 @@ def run():
     )
 
 
-
 def keep_alive():
 
-    t = Thread(target=run)
-
-    t.start()
+    Thread(
+        target=run
+    ).start()
 
 
 
 # ==========================================
-# PACK RECOMMENDATION FUNCTIONS
+# PACK FUNCTIONS
 # ==========================================
 
-
-# ⚡ FASTEST LEVELING
-# Priority:
-# Prime -> Vast -> Mediant -> Small -> Mini
 
 def fastest_leveling(xp):
 
@@ -64,30 +56,20 @@ def fastest_leveling(xp):
     packs["Prime"] = xp // 2_000_000
     xp %= 2_000_000
 
-
     packs["Vast"] = xp // 1_100_000
     xp %= 1_100_000
-
 
     packs["Mediant"] = xp // 500_000
     xp %= 500_000
 
-
     packs["Small"] = xp // 250_000
     xp %= 250_000
 
-
     packs["Mini"] = -(-xp // 125_000)
-
 
     return packs
 
 
-
-# 💰 CHEAPEST COST
-# Priority:
-# Vast -> Mediant -> Small -> Mini
-# NO PRIME
 
 def cheapest_cost(xp):
 
@@ -96,55 +78,59 @@ def cheapest_cost(xp):
     packs["Vast"] = xp // 1_100_000
     xp %= 1_100_000
 
-
     packs["Mediant"] = xp // 500_000
     xp %= 500_000
-
 
     packs["Small"] = xp // 250_000
     xp %= 250_000
 
-
     packs["Mini"] = -(-xp // 125_000)
-
 
     return packs
 
 
 
 # ==========================================
-# DISCORD BOT SETUP
+# PACK DATA
 # ==========================================
 
-class CalculatorBot(discord.Client):
 
-    def __init__(self):
+PRICES = {
 
-        super().__init__(
-            intents=discord.Intents.all()
-        )
+    "Mini":15,
+    "Small":20,
+    "Mediant":25,
+    "Vast":45,
+    "Prime":100
 
-        self.tree = app_commands.CommandTree(self)
-
-
-
-    async def setup_hook(self):
-
-        await self.tree.sync()
+}
 
 
+TIMES = {
 
-    async def on_ready(self):
+    "Mini":5,
+    "Small":10,
+    "Mediant":25,
+    "Vast":30,
+    "Prime":30
 
-        print(
-            f"✅ Logged in as {self.user}"
-        )
+}
 
 
+ICONS = {
+
+    "Prime":"👑",
+    "Vast":"💎",
+    "Mediant":"🌿",
+    "Small":"🔥",
+    "Mini":"🚀"
+
+}
 
 # ==========================================
-# PAGINATION BUTTONS
+# PAGINATION VIEW
 # ==========================================
+
 
 class CalculatorView(discord.ui.View):
 
@@ -154,35 +140,54 @@ class CalculatorView(discord.ui.View):
         cheap_text,
         total_xp,
         start,
-        target
+        target,
+        fast_cost,
+        cheap_cost,
+        hours,
+        minutes,
+        cheap_hours,
+        cheap_minutes
     ):
 
         super().__init__(
-            timeout=60
+            timeout=None
         )
 
-
         self.fast_text = fast_text
-
         self.cheap_text = cheap_text
 
         self.total_xp = total_xp
 
         self.start = start
-
         self.target = target
 
+        self.fast_cost = fast_cost
+        self.cheap_cost = cheap_cost
 
+        self.hours = hours
+        self.minutes = minutes
+
+        self.cheap_hours = cheap_hours
+        self.cheap_minutes = cheap_minutes
+
+
+
+    # ======================================
+    # PAGE 2
+    # ======================================
 
     @discord.ui.button(
         label="➡️ Next",
-        style=discord.ButtonStyle.primary
+        style=discord.ButtonStyle.primary,
+        custom_id="xp_calc_next"
     )
     async def next_page(
         self,
         interaction: discord.Interaction,
         button: discord.ui.Button
     ):
+
+        emoji = "<:dl:1495834832524021962>"
 
 
         embed = discord.Embed(
@@ -218,7 +223,7 @@ class CalculatorView(discord.ui.View):
 
         embed.add_field(
 
-            name="💰 Cheapest Cost",
+            name="💰 Cheapest Pack",
 
             value=self.cheap_text or "None",
 
@@ -227,20 +232,72 @@ class CalculatorView(discord.ui.View):
         )
 
 
-        await interaction.response.edit_message(
+        embed.add_field(
 
-            embed=embed
+            name="💸 Cheapest Cost",
+
+            value=f"{self.cheap_cost} {emoji} DL",
+
+            inline=False
 
         )
+
+
+        embed.add_field(
+
+            name="⏱️ Estimated Time",
+
+            value=f"{self.cheap_hours}h {self.cheap_minutes}m",
+
+            inline=False
+
+        )
+
+
+        embed.set_footer(
+
+            text="Page 2/2"
+
+        )
+
+
+        await interaction.response.edit_message(
+
+            embed=embed,
+
+            view=self
+
+        )
+
+
+
+
+    # ======================================
+    # PAGE 1
+    # ======================================
+
+
     @discord.ui.button(
+
         label="⬅️ Back",
-        style=discord.ButtonStyle.secondary
+
+        style=discord.ButtonStyle.secondary,
+
+        custom_id="xp_calc_back"
+
     )
     async def back_page(
+
         self,
+
         interaction: discord.Interaction,
+
         button: discord.ui.Button
+
     ):
+
+
+        emoji = "<:dl:1495834832524021962>"
 
 
         embed = discord.Embed(
@@ -285,17 +342,47 @@ class CalculatorView(discord.ui.View):
         )
 
 
-        await interaction.response.edit_message(
+        embed.add_field(
 
-            embed=embed
+            name="💸 Fastest Cost",
+
+            value=f"{self.fast_cost} {emoji} DL",
+
+            inline=False
 
         )
 
 
+        embed.add_field(
+
+            name="⏱️ Estimated Time",
+
+            value=f"{self.hours}h {self.minutes}m",
+
+            inline=False
+
+        )
+
+
+        embed.set_footer(
+
+            text="Page 1/2"
+
+        )
+
+
+        await interaction.response.edit_message(
+
+            embed=embed,
+
+            view=self
+
+        )
 
 # ==========================================
 # CALCULATOR MODAL
 # ==========================================
+
 
 class CalculatorModal(
     discord.ui.Modal,
@@ -345,23 +432,15 @@ class CalculatorModal(
         try:
 
             start = int(
-
                 self.start_lvl.value
-
             )
-
 
             target = int(
-
                 self.target_lvl.value
-
             )
 
-
             xp_owned = int(
-
-                self.current_xp.value.strip() or 0
-
+                self.current_xp.value or 0
             )
 
 
@@ -370,7 +449,20 @@ class CalculatorModal(
 
             return await interaction.response.send_message(
 
-                "❌ Please use numbers only.",
+                "❌ Please enter numbers only.",
+
+                ephemeral=True
+
+            )
+
+
+
+        if target <= start:
+
+
+            return await interaction.response.send_message(
+
+                "❌ Target level must be higher than start level.",
 
                 ephemeral=True
 
@@ -381,6 +473,7 @@ class CalculatorModal(
         # ==================================
         # XP CALCULATION
         # ==================================
+
 
         total_xp = 0
 
@@ -404,10 +497,6 @@ class CalculatorModal(
 
 
 
-        # ==================================
-        # GET RECOMMENDATIONS
-        # ==================================
-
         fast = fastest_leveling(
 
             total_xp
@@ -423,28 +512,6 @@ class CalculatorModal(
 
 
 
-        # ==================================
-        # EMOJIS
-        # ==================================
-
-        icons = {
-
-            "Prime": "👑",
-
-            "Vast": "💎",
-
-            "Mediant": "🌿",
-
-            "Small": "🔥",
-
-            "Mini": "🚀"
-
-        }
-
-
-
-        # FAST TEXT
-
         fast_text = ""
 
 
@@ -454,15 +521,11 @@ class CalculatorModal(
 
                 fast_text += (
 
-                    f"{icons[name]} "
-
-                    f"{amount}x {name} Pack\n"
+                    f"{ICONS[name]} {amount}x {name} Pack\n"
 
                 )
 
 
-
-        # CHEAP TEXT
 
         cheap_text = ""
 
@@ -473,102 +536,73 @@ class CalculatorModal(
 
                 cheap_text += (
 
-                    f"{icons[name]} "
-
-                    f"{amount}x {name} Pack\n"
+                    f"{ICONS[name]} {amount}x {name} Pack\n"
 
                 )
 
 
 
         # ==================================
-        # COST CALCULATION
+        # COST
         # ==================================
 
-        prices = {
 
-            "Mini": 15,
+        fast_cost = sum(
 
-            "Small": 20,
+            PRICES[name] * amount
 
-            "Mediant": 25,
+            for name, amount in fast.items()
 
-            "Vast": 45,
-
-            "Prime": 100
-
-        }
+        )
 
 
+        cheap_cost = sum(
 
-        fast_cost = 0
+            PRICES[name] * amount
 
+            for name, amount in cheap.items()
 
-        for name, amount in fast.items():
-
-            fast_cost += (
-
-                prices[name] * amount
-
-            )
-
-
-
-        cheap_cost = 0
-
-
-        for name, amount in cheap.items():
-
-            cheap_cost += (
-
-                prices[name] * amount
-
-            )
+        )
 
 
 
         # ==================================
-        # TIME CALCULATION
+        # TIME
         # ==================================
 
-        times = {
 
-            "Mini": 5,
+        fast_time = sum(
 
-            "Small": 10,
+            TIMES[name] * amount
 
-            "Mediant": 25,
+            for name, amount in fast.items()
 
-            "Vast": 30,
-
-            "Prime": 30
-
-        }
+        )
 
 
-        total_time = 0
+        cheap_time = sum(
 
+            TIMES[name] * amount
 
-        for name, amount in fast.items():
+            for name, amount in cheap.items()
 
-            total_time += (
-
-                times[name] * amount
-
-            )
-
-
-        hours = total_time // 60
-
-        minutes = total_time % 60
+        )
 
 
 
-        # ==================================
-        # FIRST PAGE EMBED
-        # ==================================
+        hours = fast_time // 60
+
+        minutes = fast_time % 60
+
+
+        cheap_hours = cheap_time // 60
+
+        cheap_minutes = cheap_time % 60
+
+
 
         emoji = "<:dl:1495834832524021962>"
+
 
 
         embed = discord.Embed(
@@ -635,6 +669,14 @@ class CalculatorModal(
         )
 
 
+        embed.set_footer(
+
+            text="Page 1/2"
+
+        )
+
+
+
         view = CalculatorView(
 
             fast_text,
@@ -645,9 +687,22 @@ class CalculatorModal(
 
             start,
 
-            target
+            target,
+
+            fast_cost,
+
+            cheap_cost,
+
+            hours,
+
+            minutes,
+
+            cheap_hours,
+
+            cheap_minutes
 
         )
+
 
 
         await interaction.response.send_message(
@@ -657,25 +712,94 @@ class CalculatorModal(
             view=view
 
         )
+
+
+
+
+
 # ==========================================
-# BOT COMMAND
+# BOT SETUP
 # ==========================================
+
+
+class CalculatorBot(discord.Client):
+
+
+    def __init__(self):
+
+        super().__init__(
+
+            intents=discord.Intents.all()
+
+        )
+
+        self.tree = app_commands.CommandTree(self)
+
+
+
+    async def setup_hook(self):
+
+
+        self.add_view(
+
+            CalculatorView(
+
+                "",
+                "",
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+
+            )
+
+        )
+
+
+        await self.tree.sync()
+
+
+
+    async def on_ready(self):
+
+        print(
+
+            f"✅ Logged in as {self.user}"
+
+        )
+
+
+
+
+
+# ==========================================
+# COMMAND
+# ==========================================
+
 
 bot = CalculatorBot()
 
 
 
 @bot.tree.command(
+
     name="calc",
+
     description="Open XP Calculator"
+
 )
 
 async def calc(
+
     interaction: discord.Interaction
+
 ):
 
-
-    # CATEGORY CHECK
 
     if (
 
@@ -706,9 +830,12 @@ async def calc(
 
 
 
+
+
 # ==========================================
-# RUN BOT
+# RUN
 # ==========================================
+
 
 if __name__ == "__main__":
 
@@ -717,7 +844,9 @@ if __name__ == "__main__":
 
 
     token = os.getenv(
+
         "DISCORD_TOKEN"
+
     )
 
 
